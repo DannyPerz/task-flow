@@ -9,9 +9,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     try {
       const userData = await loginUser(email, password);
+      if (!userData) return null; 
+
       set({ user: userData, isAuthenticated: true });
+      return userData; 
     } catch (error) {
-      console.error("Error al inciar sesión", error);
+      console.error("Error al iniciar sesión", error);
+      return null; 
     }
   },
 

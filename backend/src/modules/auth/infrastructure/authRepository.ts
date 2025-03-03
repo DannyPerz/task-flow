@@ -10,7 +10,6 @@ const supabase = createClient(
 );
 
 export const AuthRepository = {
-
   async register(
     email: string,
     password: string,
@@ -58,7 +57,15 @@ export const AuthRepository = {
         return null;
       }
 
-      return { user: data.user, token: data.session.access_token };
+      return {
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          fullName: data.user.user_metadata.fullName,
+          role: data.user.user_metadata.role || "user",
+        },
+        token: data.session.access_token,
+      };
     } catch (error) {
       console.error("Excepción en login:", error);
       return null;
@@ -79,11 +86,15 @@ export const AuthRepository = {
         return null;
       }
 
-      return data.user;
+      return {
+        id: data.user.id,
+        email: data.user.email,
+        fullName: data.user.user_metadata.fullName,
+        role: data.user.user_metadata.role || "user",
+      };
     } catch (error) {
       console.error("Excepción en getUser:", error);
       return null;
     }
   },
-  
 };

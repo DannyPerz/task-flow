@@ -3,6 +3,9 @@
 //Hooks
 import { useState } from "react";
 import { useAuthStore } from "@/features/auth/application/useAuthStore";
+import { useRouter } from "next/navigation";
+//Domain
+import { validateLogin } from "@/features/auth/domain/validators";
 //UI
 import { Button } from "@/app/shared/ui/button";
 import { Input } from "@/app/shared/ui/input";
@@ -16,18 +19,40 @@ import {
   CardTitle,
 } from "@/app/shared/ui/card";
 //Icons
-import { EyeClosed, Eye } from "lucide-react";
+import { EyeClosed, Eye, Loader2 } from "lucide-react";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
   //Hooks
   const { login } = useAuthStore();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+
+    const validationErrors = validateLogin(email, password);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) return;
+
+    setLoading(true);
+    setErrors({});
+
+    const response = await login(email, password);
+
+    if (!response) {
+      setErrors({ email: "Credenciales inválidas. Intente de nuevo." });
+      setLoading(false);
+      return;
+    }
+
+    router.push("/dashboard");
   };
 
   return (
@@ -48,7 +73,14 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Correo electrónico"
+              disabled={loading}
+              className={
+                errors.email ? "border-red-500 focus:ring-red-500" : ""
+              }
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -65,6 +97,10 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Contraseña"
                 autoComplete="current-password"
+                disabled={loading}
+                className={
+                  errors.password ? "border-red-500 focus:ring-red-500" : ""
+                }
               />
               <Button
                 type="button"
@@ -81,12 +117,22 @@ function LoginForm() {
                 )}
               </Button>
             </div>
+            {errors.password && (
+              <p className="text-red-500 text-sm">{errors.password}</p>
+            )}
           </div>
         </CardContent>
       </form>
       <CardFooter>
         <Button type="submit" variant="secondary" className="w-full">
-          Iniciar sesión
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin h-4 w-4 mr-2" />
+              Iniciando...
+            </>
+          ) : (
+            "Iniciar sesión"
+          )}
         </Button>
       </CardFooter>
       <div className="px-8 pb-6 text-center text-sm">
