@@ -2,6 +2,7 @@
 
 //Hooks
 import { useState } from "react";
+import { useAuthStore } from "@/features/auth/application/useAuthStore";
 //UI
 import { Button } from "@/app/shared/ui/button";
 import { Input } from "@/app/shared/ui/input";
@@ -17,10 +18,17 @@ import {
 //Icons
 import { EyeClosed, Eye } from "lucide-react";
 
-
 function LoginForm() {
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  //Hooks
+  const { login } = useAuthStore();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await login(email, password);
+  };
 
   return (
     <Card>
@@ -30,11 +38,17 @@ function LoginForm() {
           Inicie sesión en su cuenta para comenzar a usar Task Flow
         </CardDescription>
       </CardHeader>
-      <form action="">
+      <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Correo electrónico</Label>
-            <Input type="email" id="email" placeholder="Correo electrónico" />
+            <Input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Correo electrónico"
+            />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -44,7 +58,14 @@ function LoginForm() {
               </Button>
             </div>
             <div className="relative">
-              <Input type={showPassword ? "text" : "password"} id="password" placeholder="Contraseña" autoComplete="current-password" />
+              <Input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Contraseña"
+                autoComplete="current-password"
+              />
               <Button
                 type="button"
                 variant="ghost"
@@ -64,7 +85,7 @@ function LoginForm() {
         </CardContent>
       </form>
       <CardFooter>
-        <Button variant="secondary" className="w-full">
+        <Button type="submit" variant="secondary" className="w-full">
           Iniciar sesión
         </Button>
       </CardFooter>
